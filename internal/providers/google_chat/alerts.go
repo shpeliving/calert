@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/mr-karan/calert/internal/metrics"
 	alertmgrtmpl "github.com/prometheus/alertmanager/template"
+	"github.com/shpeliving/calert/internal/metrics"
 	"github.com/sirupsen/logrus"
 )
 
@@ -24,13 +24,6 @@ type ActiveAlerts struct {
 type AlertDetails struct {
 	StartsAt time.Time
 	UUID     uuid.UUID
-}
-
-// ChatMessage represents the structure for sending a
-// Text message in Google Chat Webhook endpoint.
-// https://developers.google.com/chat/api/guides/message-formats/basic
-type ChatMessage struct {
-	Text string `json:"text"`
 }
 
 // add adds an alert to the active alerts map.

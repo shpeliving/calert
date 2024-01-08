@@ -3,8 +3,8 @@ package notifier
 import (
 	"fmt"
 
-	"github.com/mr-karan/calert/internal/providers"
 	alertmgrtmpl "github.com/prometheus/alertmanager/template"
+	"github.com/shpeliving/calert/internal/providers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -37,8 +37,10 @@ func Init(opts Opts) (Notifier, error) {
 }
 
 // Dispatch pushes out a notification to an upstream provider.
-func (n *Notifier) Dispatch(alerts []alertmgrtmpl.Alert, room string) error {
-	n.lo.WithField("count", len(alerts)).Info("dispatching alerts")
+func (n *Notifier) Dispatch(payload alertmgrtmpl.Data, room string) error {
+	n.lo.WithField("payload", payload).Debug("Dispatch request payload")
+
+	n.lo.WithField("count", len(payload.Alerts)).Info("dispatching alerts")
 
 	// Lookup for the provider by the room name.
 	if _, ok := n.providers[room]; !ok {
@@ -46,7 +48,7 @@ func (n *Notifier) Dispatch(alerts []alertmgrtmpl.Alert, room string) error {
 		return fmt.Errorf("no provider configured for room: %s", room)
 	}
 	// Push the batch of alerts.
-	n.providers[room].Push(alerts)
+	n.providers[room].Push(payload.Alerts)
 
 	return nil
 }

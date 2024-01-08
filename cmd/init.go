@@ -9,10 +9,10 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/mr-karan/calert/internal/metrics"
-	"github.com/mr-karan/calert/internal/notifier"
-	prvs "github.com/mr-karan/calert/internal/providers"
-	"github.com/mr-karan/calert/internal/providers/google_chat"
+	"github.com/shpeliving/calert/internal/metrics"
+	"github.com/shpeliving/calert/internal/notifier"
+	prvs "github.com/shpeliving/calert/internal/providers"
+	"github.com/shpeliving/calert/internal/providers/google_chat"
 	"github.com/sirupsen/logrus"
 	flag "github.com/spf13/pflag"
 )
@@ -21,10 +21,7 @@ import (
 func initLogger() *logrus.Logger {
 	logger := logrus.New()
 
-	logger.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:          true,
-		DisableLevelTruncation: true,
-	})
+	logger.SetFormatter(&logrus.JSONFormatter{})
 
 	return logger
 }
@@ -103,6 +100,7 @@ func initProviders(ko *koanf.Koanf, lo *logrus.Logger, metrics *metrics.Manager)
 					ThreadTTL:   ko.MustDuration(fmt.Sprintf("%s.thread_ttl", cfgKey)),
 					Metrics:     metrics,
 					DryRun:      ko.Bool(fmt.Sprintf("%s.dry_run", cfgKey)),
+					V2:          ko.Bool(fmt.Sprintf("%s.v2", cfgKey)),
 				},
 			)
 			if err != nil {

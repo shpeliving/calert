@@ -5,8 +5,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/mr-karan/calert/internal/metrics"
-	"github.com/mr-karan/calert/internal/notifier"
+	"github.com/shpeliving/calert/internal/metrics"
+	"github.com/shpeliving/calert/internal/notifier"
 
 	"github.com/sirupsen/logrus"
 )

@@ -1,4 +1,4 @@
-module github.com/mr-karan/calert
+module github.com/shpeliving/calert
 
 require (
 	github.com/VictoriaMetrics/metrics v1.24.0

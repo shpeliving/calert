@@ -40,8 +40,8 @@ dockers:
 
     # Templates of the Docker image names.
     image_templates:
-      - "ghcr.io/mr-karan/calert:{{ .Tag }}"
-      - "ghcr.io/mr-karan/calert:latest"
+      - "ghcr.io/shpeliving/calert:{{ .Tag }}"
+      - "ghcr.io/shpeliving/calert:latest"
 
     # Skips the docker push.
     # Could be useful if you also do draft releases.

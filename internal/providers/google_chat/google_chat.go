@@ -9,8 +9,8 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/mr-karan/calert/internal/metrics"
 	alertmgrtmpl "github.com/prometheus/alertmanager/template"
+	"github.com/shpeliving/calert/internal/metrics"
 	"github.com/sirupsen/logrus"
 )
 
@@ -36,6 +36,7 @@ type GoogleChatOpts struct {
 	Room        string
 	Template    string
 	ThreadTTL   time.Duration
+	V2          bool
 }
 
 // NewGoogleChat initializes a Google Chat provider object.
@@ -70,6 +71,7 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 	}
 
 	// Load the template.
+	// TODO (Alex)
 	tmpl, err := template.New(filepath.Base(opts.Template)).Funcs(templateFuncMap).ParseFiles(opts.Template)
 	if err != nil {
 		return nil, err
