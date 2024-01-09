@@ -23,6 +23,7 @@ type GoogleChatManager struct {
 	client       *http.Client
 	msgTmpl      *template.Template
 	dryRun       bool
+	v2           bool
 }
 
 type GoogleChatOpts struct {
@@ -71,7 +72,6 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 	}
 
 	// Load the template.
-	// TODO (Alex)
 	tmpl, err := template.New(filepath.Base(opts.Template)).Funcs(templateFuncMap).ParseFiles(opts.Template)
 	if err != nil {
 		return nil, err
@@ -90,6 +90,7 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 		},
 		msgTmpl: tmpl,
 		dryRun:  opts.DryRun,
+		v2:      opts.V2,
 	}
 	// Start a background worker to cleanup alerts based on TTL mechanism.
 	go mgr.activeAlerts.startPruneWorker(1*time.Hour, opts.ThreadTTL)
@@ -103,13 +104,24 @@ func (m *GoogleChatManager) Push(alerts []alertmgrtmpl.Alert) error {
 
 	// For each alert, lookup the UUID and send the alert.
 	for _, a := range alerts {
+		isThreadReply := true
 		// If it's a new alert whose fingerprint isn't in the active alerts map, add it first.
 		if m.activeAlerts.loookup(a.Fingerprint) == "" {
+			isThreadReply = false
 			m.activeAlerts.add(a)
 		}
 
+		threadKey := m.activeAlerts.alerts[a.Fingerprint].UUID.String()
+
 		// Prepare a list of messages to send.
-		msgs, err := m.prepareMessage(a)
+		var msgs []ChatMessage
+		var err error
+		if m.v2 {
+			msgs, err = m.prepareMessageV2(a, threadKey, isThreadReply)
+		} else {
+			msgs, err = m.prepareMessage(a)
+		}
+
 		if err != nil {
 			m.lo.WithError(err).Error("error preparing message")
 			continue
@@ -117,10 +129,7 @@ func (m *GoogleChatManager) Push(alerts []alertmgrtmpl.Alert) error {
 
 		// Dispatch an HTTP request for each message.
 		for _, msg := range msgs {
-			var (
-				threadKey = m.activeAlerts.alerts[a.Fingerprint].UUID.String()
-				now       = time.Now()
-			)
+			now := time.Now()
 
 			m.metrics.Increment(fmt.Sprintf(`alerts_dispatched_total{provider="%s", room="%s"}`, m.ID(), m.Room()))
 
@@ -128,9 +137,15 @@ func (m *GoogleChatManager) Push(alerts []alertmgrtmpl.Alert) error {
 			if m.dryRun {
 				m.lo.WithField("room", m.Room()).Info("dry_run is enabled for this room. skipping pushing notification")
 			} else {
-				if err := m.sendMessage(msg, threadKey); err != nil {
+				var sendErr error
+				if m.v2 {
+					sendErr = m.sendMessageV2(msg)
+				} else {
+					sendErr = m.sendMessage(msg, threadKey)
+				}
+				if sendErr != nil {
 					m.metrics.Increment(fmt.Sprintf(`alerts_dispatched_errors_total{provider="%s", room="%s"}`, m.ID(), m.Room()))
-					m.lo.WithError(err).Error("error sending message")
+					m.lo.WithError(sendErr).Error("error sending message")
 					continue
 				}
 			}

@@ -1,5 +1,10 @@
 package google_chat
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
 type Thread struct {
 	Name      string `json:"name"`
 	ThreadKey string `json:"threadKey"`
@@ -78,4 +83,25 @@ type ComplexChatMessage struct {
 // https://developers.google.com/chat/api/guides/message-formats/basic
 type BasicChatMessage struct {
 	Text string `json:"text"`
+}
+
+type ChatMessage interface {
+	ToBuffer() (*bytes.Buffer, error)
+}
+
+func (c ComplexChatMessage) ToBuffer() (*bytes.Buffer, error) {
+	return msgToBuffer(c)
+}
+
+func (b BasicChatMessage) ToBuffer() (*bytes.Buffer, error) {
+	return msgToBuffer(b)
+}
+
+func msgToBuffer(msg ChatMessage) (*bytes.Buffer, error) {
+	out, err := json.Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(out), nil
 }

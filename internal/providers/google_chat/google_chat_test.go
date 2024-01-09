@@ -1,6 +1,7 @@
 package google_chat
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -41,7 +42,12 @@ func TestGoogleChatTemplate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	msg, ok := msgs[0].(*BasicChatMessage)
+	if !ok {
+		t.Fatal(errors.New("the message is not of type BasicChatMessage"))
+	}
+
 	assert.Equal(t, "message.tmpl", filepath.Base(chat.msgTmpl.Name()), "Message template name")
-	assert.Equal(t, msgs[0].Text, expectedMessage)
+	assert.Equal(t, msg.Text, expectedMessage)
 
 }

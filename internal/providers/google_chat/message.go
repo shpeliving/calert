@@ -2,7 +2,6 @@ package google_chat
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -18,14 +17,14 @@ const (
 // prepareMessage accepts an Alert object and templates out with the user provided template.
 // It also splits the alerts if the combined size exceeds the limit of 4096 bytes by
 // G-Chat Webhook API
-func (m *GoogleChatManager) prepareMessage(alert alertmgrtmpl.Alert) ([]BasicChatMessage, error) {
+func (m *GoogleChatManager) prepareMessage(alert alertmgrtmpl.Alert) ([]ChatMessage, error) {
 	var (
 		str strings.Builder
 		to  bytes.Buffer
 		msg BasicChatMessage
 	)
 
-	messages := make([]BasicChatMessage, 0)
+	messages := make([]ChatMessage, 0)
 
 	// Render a template with alert data.
 	err := m.msgTmpl.Execute(&to, alert)
@@ -53,8 +52,8 @@ func (m *GoogleChatManager) prepareMessage(alert alertmgrtmpl.Alert) ([]BasicCha
 }
 
 // sendMessage pushes out a notification to Google Chat space.
-func (m *GoogleChatManager) sendMessage(msg BasicChatMessage, threadKey string) error {
-	out, err := json.Marshal(msg)
+func (m *GoogleChatManager) sendMessage(msg ChatMessage, threadKey string) error {
+	buffer, err := msg.ToBuffer()
 	if err != nil {
 		return err
 	}
@@ -70,14 +69,14 @@ func (m *GoogleChatManager) sendMessage(msg BasicChatMessage, threadKey string) 
 	endpoint := u.String()
 
 	// Prepare the request.
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(out))
+	req, err := http.NewRequest("POST", endpoint, buffer)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	// Send the request.
-	m.lo.WithField("url", endpoint).WithField("msg", msg.Text).Debug("sending alert")
+	m.lo.WithField("url", endpoint).WithField("msg", msg).Debug("sending alert")
 	resp, err := m.client.Do(req)
 	if err != nil {
 		return err
