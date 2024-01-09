@@ -71,6 +71,7 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 		"toUpper":    strings.ToUpper,
 		"Contains":   strings.Contains,
 		"escapeJSON": escapeJSON,
+		"Text":       replaceNewLines,
 	}
 
 	// Load the template.
@@ -176,4 +177,8 @@ func escapeJSON(s string) string {
 	}
 	// Trim the leading and trailing quotes added by json.Marshal
 	return string(b[1 : len(b)-1])
+}
+
+func replaceNewLines(s string) string {
+	return strings.ReplaceAll(s, "\n", "\\n")
 }

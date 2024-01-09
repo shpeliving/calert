@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 
 	alertmgrtmpl "github.com/prometheus/alertmanager/template"
 )
@@ -27,11 +26,7 @@ func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey
 	}
 
 	// Unmarshal the json to ComplexChatMessage struct
-	rawJSON := string(to.Bytes())
-	unescapedJSON := strings.ReplaceAll(rawJSON, `\n`, "\n")
-	unescapedJSON = strings.ReplaceAll(unescapedJSON, `\"`, "\"")
-	m.lo.WithField("template", unescapedJSON).Debug("alert template content")
-	err = json.Unmarshal([]byte(unescapedJSON), msg)
+	err = json.Unmarshal(to.Bytes(), &msg)
 	if err != nil {
 		m.lo.WithError(err).Error("Error unmarshalling json in v2 template")
 		return messages, err
