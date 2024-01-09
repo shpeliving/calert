@@ -40,6 +40,10 @@ func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey
 	// Add whether this is a thread reply or not
 	msg.ThreadReply = isThreadReply
 
+	for key := range msg.Cards {
+		msg.Cards[key].CardId = threadKey
+	}
+
 	// Add the message to batch.
 	messages = append(messages, msg)
 

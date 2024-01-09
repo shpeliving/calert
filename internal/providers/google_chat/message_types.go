@@ -122,7 +122,8 @@ type Card struct {
 }
 
 type Cards struct {
-	Card Card `json:"card"`
+	CardId string `json:"cardId"`
+	Card   Card   `json:"card"`
 }
 
 // ComplexChatMessage represents the structure for sending a

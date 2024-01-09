@@ -63,14 +63,15 @@ Example:
 
 `calert` can load a map of different _providers_. The unique identifier for the `provider` is the room name. Each provider has it's own configuration, based on it's `provider_type. Currently `calert` supports Google Chat but can support arbitary providers as well.
 
-|  Key  	|  Explanation 	| Default 	|
-|---	| ---	| --- |
-|  `providers.<room_name>.type` 	| Provider type. Currently only `google_chat` is supported. 	| `google_chat`	|
-|  `providers.<room_name>.endpoint` 	| Webhook URL to send alerts to.  	| - |
-|  `providers.<room_name>.max_idle_conns` 	| Maximum Keep Alive connections to keep in the pool.  	| `50` |
-|  `providers.<room_name>.timeout` 	| Timeout for making HTTP requests to the webhook URL.  	| `7s` |
-|  `providers.<room_name>.template` 	| Template for rendering a formatted Alert notification.  	| `static/message.tmpl` |
-|  `providers.<room_name>.thread_ttl` 	| Timeout to keep active alerts in memory. Once this TTL expires, a new thread will be created.	| `12h` |
+| Key  	                                   | Explanation 	                                                                                  | Default 	             |
+|------------------------------------------|------------------------------------------------------------------------------------------------|-----------------------|
+| `providers.<room_name>.type` 	           | Provider type. Currently only `google_chat` is supported. 	                                    | `google_chat`	        |
+| `providers.<room_name>.endpoint` 	       | Webhook URL to send alerts to.  	                                                              | -                     |
+| `providers.<room_name>.max_idle_conns` 	 | Maximum Keep Alive connections to keep in the pool.  	                                         | `50`                  |
+| `providers.<room_name>.timeout` 	        | Timeout for making HTTP requests to the webhook URL.  	                                        | `7s`                  |
+| `providers.<room_name>.template` 	       | Template for rendering a formatted Alert notification.  	                                      | `static/message.tmpl` |
+| `providers.<room_name>.thread_ttl` 	     | Timeout to keep active alerts in memory. Once this TTL expires, a new thread will be created.	 | `12h`                 |
+| `providers.<room_name>.v2` 	             | Whether we want to use the v2 messages or not.	                                                | `false`               |
 
 ## Alertmanager Integration
 
@@ -102,8 +103,83 @@ Alertmanager currently doesn't send any _Unique Identifier_ for each Alert. The 
 
 - Use the `fingerprint` field present in the Alert. This field is computed by hashing the labels for an alert.
 - Create a map of `active_alerts` in memory. Add an alert by it's fingerprint and generate a random `UUID.v4` and store that in the map (along with some more meta-data like `startAt` field).
-- Use `?threadKey=uuid` query param while making a request to Google Chat. This ensures that all alerts with same fingerprint (=_same labels_) go under the same thread.
+- Use `?threadKey=uuid` query param while making a request to Google Chat v1. If we use messages v2 threadKey is part of the POST payload. This ensures that all alerts with same fingerprint (=_same labels_) go under the same thread.
 - A background worker runs _every hour_ which scans the map of `active_alerts`. It checks whether the alert's `startAt` field has crossed the TTL (as specified by `thread_ttl`). If the TTL is expired then the `alert` is removed from the map. This ensures that the map of `active_alerts` doesn't grow unbounded and after a certain TTL all alerts are sent to a new thread.
+
+## V2 Messaging
+It uses the v2 messages of the google chat API. It gives more flexibility on the visualization part since you can create custom cards.
+Currently we only support the following fields (Example payload):
+```json
+{
+  "cardsV2": [
+    {
+      "card": {
+        "header": {
+          "title": "<AlertName>",
+          "imageUrl": "<HeaderImageUrl>",
+          "imageType": "<HeaderImageType>",
+          "imageAltText": "<HeaderImageAltText>"
+        },
+        "sections": [
+          {
+            "collapsible": true,
+            "uncollapsibleWidgetsCount": 1,
+            "widgets": [
+              {
+                "decoratedText": {
+                  "wrapText": true,
+                  "text": "<b><AlertTitle></b>"
+                }
+              },
+              {
+                "textParagraph": {
+                  "text": "<AlertDescription>"
+              }
+            }
+            ]
+          },
+          {
+            "widgets": [
+              {
+                "columns": {
+                  "columnItems": [
+                    {
+                      "horizontalSizeStyle": "FILL_AVAILABLE_SPACE",
+                      "horizontalAlignment": "START",
+                      "verticalAlignment": "CENTER",
+                      "widgets": [
+                        {
+                          "decoratedText": {
+                            "bottomLabel": "<BottomLabelText>"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "horizontalSizeStyle": "FILL_AVAILABLE_SPACE",
+                      "horizontalAlignment": "END",
+                      "verticalAlignment": "CENTER",
+                      "widgets": [
+                        {
+                          "decoratedText": {
+                            "text": "<font color=\"#FFA500\"><b><AlertSeverity></b></font>"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+For reference please visit the google documentation: https://developers.google.com/chat/api/reference/rest/v1/spaces.messages
+
 
 ## Prometheus Metrics
 
