@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 
 	alertmgrtmpl "github.com/prometheus/alertmanager/template"
 )
@@ -57,8 +58,18 @@ func (m *GoogleChatManager) sendMessageV2(msg ChatMessage) error {
 		return err
 	}
 
+	// Parse the webhook URL to add `?messageReplyOption` param.
+	u, err := url.Parse(m.endpoint)
+	if err != nil {
+		return err
+	}
+	q := u.Query()
+	q.Set("messageReplyOption", "REPLY_MESSAGE_FALLBACK_TO_NEW_THREAD")
+	u.RawQuery = q.Encode()
+	endpoint := u.String()
+
 	// Prepare the request.
-	req, err := http.NewRequest("POST", m.endpoint, buffer)
+	req, err := http.NewRequest("POST", endpoint, buffer)
 	if err != nil {
 		return err
 	}
