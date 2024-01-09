@@ -1,6 +1,7 @@
 package google_chat
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -66,9 +67,10 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 
 	// Initialise message template functions.
 	templateFuncMap := template.FuncMap{
-		"Title":    strings.Title,
-		"toUpper":  strings.ToUpper,
-		"Contains": strings.Contains,
+		"Title":      strings.Title,
+		"toUpper":    strings.ToUpper,
+		"Contains":   strings.Contains,
+		"escapeJSON": escapeJSON,
 	}
 
 	// Load the template.
@@ -165,4 +167,13 @@ func (m *GoogleChatManager) Room() string {
 // ID returns the provider name.
 func (m *GoogleChatManager) ID() string {
 	return "google_chat"
+}
+
+func escapeJSON(s string) string {
+	b, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	}
+	// Trim the leading and trailing quotes added by json.Marshal
+	return string(b[1 : len(b)-1])
 }
