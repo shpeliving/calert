@@ -27,10 +27,11 @@ func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey
 	}
 
 	// Unmarshal the json to ComplexChatMessage struct
-	toString := string(to.Bytes())
-	m.lo.WithField("template", toString).Debug("alert template content")
-	toJsonStr := strings.ReplaceAll(toString, "\\n", "\n")
-	err = json.Unmarshal([]byte(toJsonStr), msg)
+	rawJSON := string(to.Bytes())
+	unescapedJSON := strings.ReplaceAll(rawJSON, `\n`, "\n")
+	unescapedJSON = strings.ReplaceAll(unescapedJSON, `\"`, "\"")
+	m.lo.WithField("template", unescapedJSON).Debug("alert template content")
+	err = json.Unmarshal([]byte(unescapedJSON), msg)
 	if err != nil {
 		m.lo.WithError(err).Error("Error unmarshalling json in v2 template")
 		return messages, err
