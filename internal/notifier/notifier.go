@@ -38,7 +38,7 @@ func Init(opts Opts) (Notifier, error) {
 
 // Dispatch pushes out a notification to an upstream provider.
 func (n *Notifier) Dispatch(payload alertmgrtmpl.Data, room string) error {
-	n.lo.WithField("payload", payload).Debug("Dispatch request payload")
+	n.lo.WithField("payload", payload).Debug("dispatch request payload")
 
 	n.lo.WithField("count", len(payload.Alerts)).Info("dispatching alerts")
 

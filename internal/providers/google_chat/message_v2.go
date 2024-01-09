@@ -27,7 +27,9 @@ func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey
 	}
 
 	// Unmarshal the json to ComplexChatMessage struct
-	toJsonStr := strings.ReplaceAll(string(to.Bytes()), "\\n", "\n")
+	toString := string(to.Bytes())
+	m.lo.WithField("template", toString).Debug("alert template content")
+	toJsonStr := strings.ReplaceAll(toString, "\\n", "\n")
 	err = json.Unmarshal([]byte(toJsonStr), msg)
 	if err != nil {
 		m.lo.WithError(err).Error("Error unmarshalling json in v2 template")
