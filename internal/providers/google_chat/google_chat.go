@@ -108,10 +108,8 @@ func (m *GoogleChatManager) Push(alerts []alertmgrtmpl.Alert) error {
 
 	// For each alert, lookup the UUID and send the alert.
 	for _, a := range alerts {
-		isThreadReply := true
 		// If it's a new alert whose fingerprint isn't in the active alerts map, add it first.
 		if m.activeAlerts.loookup(a.Fingerprint) == "" {
-			isThreadReply = false
 			m.activeAlerts.add(a)
 		}
 
@@ -121,7 +119,7 @@ func (m *GoogleChatManager) Push(alerts []alertmgrtmpl.Alert) error {
 		var msgs []ChatMessage
 		var err error
 		if m.v2 {
-			msgs, err = m.prepareMessageV2(a, threadKey, isThreadReply)
+			msgs, err = m.prepareMessageV2(a, threadKey)
 		} else {
 			msgs, err = m.prepareMessage(a)
 		}

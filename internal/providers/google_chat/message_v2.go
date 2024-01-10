@@ -11,7 +11,7 @@ import (
 )
 
 // prepareMessage prepares a v2 message to be sent to google chat
-func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey string, isThreadReply bool) ([]ChatMessage, error) {
+func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey string) ([]ChatMessage, error) {
 	var (
 		to  bytes.Buffer
 		msg *ComplexChatMessage
@@ -37,9 +37,6 @@ func (m *GoogleChatManager) prepareMessageV2(alert alertmgrtmpl.Alert, threadKey
 	msg.Thread = Thread{
 		ThreadKey: threadKey,
 	}
-
-	// Add whether this is a thread reply or not
-	msg.ThreadReply = isThreadReply
 
 	for key := range msg.Cards {
 		msg.Cards[key].CardId = threadKey

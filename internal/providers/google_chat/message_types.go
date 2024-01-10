@@ -130,9 +130,9 @@ type Cards struct {
 // complex message in Google Chat Webhook endpoint.
 // https://developers.google.com/chat/api/reference/rest/v1/spaces.messages
 type ComplexChatMessage struct {
-	Thread      Thread  `json:"thread"`
-	ThreadReply bool    `json:"threadReply"`
-	Cards       []Cards `json:"cardsV2"`
+	Thread       Thread  `json:"thread"`
+	Cards        []Cards `json:"cardsV2"`
+	FallbackText string  `json:"fallbackText"`
 }
 
 // BasicChatMessage represents the structure for sending a
