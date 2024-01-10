@@ -72,6 +72,7 @@ func NewGoogleChat(opts GoogleChatOpts) (*GoogleChatManager, error) {
 		"Contains":   strings.Contains,
 		"escapeJSON": escapeJSON,
 		"Text":       replaceNewLines,
+		"isEmpty":    isEmpty,
 	}
 
 	// Load the template.
@@ -181,4 +182,14 @@ func escapeJSON(s string) string {
 
 func replaceNewLines(s string) string {
 	return strings.ReplaceAll(s, "\n", "\\n")
+}
+
+func isEmpty(input interface{}) bool {
+	if str, ok := input.(string); ok {
+		if len(str) > 0 {
+			return false
+		}
+	}
+
+	return true
 }
